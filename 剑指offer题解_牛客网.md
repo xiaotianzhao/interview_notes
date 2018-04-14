@@ -632,4 +632,160 @@
     };
     ```
 
-21. 输入两个整数序列，第一个序列表示栈的压入顺序，请判断第二个序列是否为该栈的弹出顺序。假设压入栈的所有数字均不相等。例如序列1,2,3,4,5是某栈的压入顺序，序列4，5,3,2,1是该压栈序列对应的一个弹出序列，但4,3,5,1,2就不可能是该压栈序列的弹出序列。（注意：这两个序列的长度是相等的）
+21. 输入两个整数序列，第一个序列表示栈的压入顺序，请判断第二个序列是否为该栈的弹出顺序。假设压入栈的所有数字均不相等。例如序列1,2,3,4,5是某栈的压入顺序，序列4,5,3,2,1是该压栈序列对应的一个弹出序列，但4,3,5,1,2就不可能是该压栈序列的弹出序列。（注意：这两个序列的长度是相等的）
+
+    ```
+    class Solution {
+    public:
+        bool IsPopOrder(vector<int> pushV,vector<int> popV) {
+            int n = pushV.size();
+            stack<int> data_stack;
+            int pos_v = 0;
+            for(int i = 0 ; i < n ; i++){
+                // 负责构建栈
+                if (data_stack.empty()){
+                    while(pos_v < n && pushV[pos_v] != popV[i]){
+                        data_stack.push(pushV[pos_v++]);
+                    }
+
+                    if (pos_v == n && data_stack.empty()){
+                        return false;
+                    }
+                    if(pushV[pos_v] == popV[i]){
+                        data_stack.push(pushV[pos_v++]);
+                    }
+
+                }else{
+                    int top_value = data_stack.top();
+                    if (top_value != popV[i]){
+                        while(pos_v < n && pushV[pos_v] != popV[i]){
+                            data_stack.push(pushV[pos_v++]);
+                        }
+                        if (pos_v == n && data_stack.empty()){
+                            return false;
+                        }
+                        if(pushV[pos_v] == popV[i]){
+                            data_stack.push(pushV[pos_v++]);
+                        }
+                    }
+                }
+
+    //            stack<int> tmp = data_stack;
+    //            while(!tmp.empty()){
+    //                cout << tmp.top() << " ";
+    //                tmp.pop();
+    //            }
+    //            cout << endl;
+
+                // 负责查看顶部与弹出序列是否相等
+                if (data_stack.empty()){
+                    return false;
+                }else{
+                    int top_value = data_stack.top();
+                    if (top_value == popV[i]){
+                        data_stack.pop();
+                    }else{
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+    };
+    ```
+
+22. 从上往下打印出二叉树的每个节点，同层节点从左至右打印
+
+    ```
+    /*
+    struct TreeNode {
+    	int val;
+    	struct TreeNode *left;
+    	struct TreeNode *right;
+    	TreeNode(int x) :
+    			val(x), left(NULL), right(NULL) {
+    	}
+    };*/
+    class Solution {
+    public:
+        vector<int> PrintFromTopToBottom(TreeNode* root) {
+            vector<int> results;
+            if (root == NULL){
+                return results;
+            }
+            
+            queue<TreeNode*> queue_1, queue_2;
+            queue_1.push(root);
+            
+            while(!queue_1.empty() || !queue_2.empty()){
+                while(!queue_1.empty()){
+                    TreeNode* tmp = queue_1.front();
+                    queue_1.pop();
+                    results.push_back(tmp->val);
+                    if(tmp->left != NULL){
+                        queue_2.push(tmp->left);
+                    }
+                    if(tmp->right != NULL){
+                        queue_2.push(tmp->right);
+                    }
+                }
+                
+                while(!queue_2.empty()){
+                    TreeNode* tmp = queue_2.front();
+                    queue_2.pop();
+                    results.push_back(tmp->val);
+                    if (tmp->left != NULL){
+                        queue_1.push(tmp->left);
+                    }
+                    if (tmp->right != NULL){
+                        queue_1.push(tmp->right);
+                    }
+                }
+            }
+            
+            return results;
+        }
+    };
+    ```
+
+23. 输入一个整数数组，判断该数组是不是某二叉搜索树的后序遍历的结果。如果是则输出Yes,否则输出No。假设输入的数组的任意两个数字都互不相同。
+
+    ```
+    class Solution {
+    public:
+        bool VerifySquenceOfBST(vector<int> sequence) {
+            int sequence_size = sequence.size();
+            if (sequence_size == 0){
+                return false;
+            }
+            
+            int root_num = sequence[sequence_size - 1];
+            int pos = 0;
+            while(pos < sequence_size - 1 && sequence[pos] < root_num){
+                pos++;
+            }
+
+            while(pos < sequence_size - 1){
+                if (sequence[pos++] < root_num){
+                    return false;
+                }
+            }
+            
+            vector<int> left_sequence = vector<int>(sequence.begin(), sequence.begin() + pos);
+            vector<int> right_sequence = vector<int>(sequence.begin() + pos, sequence.end() - 1);
+            
+            bool left_flag = true;
+            if (pos > 0){
+                left_flag = VerifySquenceOfBST(left_sequence);
+            }
+            bool right_flag = true;
+            if (pos < sequence_size - 1){
+                right_flag = VerifySquenceOfBST(right_sequence);
+            }
+            return (left_flag && right_flag);
+        }
+    };
+    ```
+
+    ​
