@@ -531,7 +531,81 @@
 
 17. 输入两棵二叉树A，B，判断B是不是A的子结构。（ps：我们约定空树不是任意一个树的子结构）
 
+    ```
+    /*
+    struct TreeNode {
+    	int val;
+    	struct TreeNode *left;
+    	struct TreeNode *right;
+    	TreeNode(int x) :
+    			val(x), left(NULL), right(NULL) {
+    	}
+    };*/
+    class Solution {
+    public:
+        bool HasSubtree(TreeNode* pRoot1, TreeNode* pRoot2)
+        {
+            bool result = false;
+            
+            if(pRoot1 != NULL && pRoot2 != NULL){
+                if (pRoot1->val == pRoot2->val){
+                    result = is_sub_tree(pRoot1->left, pRoot2->left) && is_sub_tree(pRoot1->right, pRoot2->right);
+                }
+                
+                if (!result){
+                    result = HasSubtree(pRoot1->left, pRoot2);
+                }
+                
+                if (!result){
+                    result = HasSubtree(pRoot1->right, pRoot2);
+                }
+            }
+            
+            return result;
+        }
+
+        bool is_sub_tree(TreeNode* root_1, TreeNode* root_2){
+            if (root_2 == NULL){
+                return true;
+            }
+
+            if (root_1 != NULL && root_2 != NULL && root_1->val == root_2->val){
+                return is_sub_tree(root_1->left, root_2->left) && is_sub_tree(root_1->right, root_2->right);
+            }else{
+                return false;
+            }
+        }
+    };
+    ```
+
 18. 操作给定的二叉树，将其变换为源二叉树的镜像。
+
+    ```
+    /*
+    struct TreeNode {
+    	int val;
+    	struct TreeNode *left;
+    	struct TreeNode *right;
+    	TreeNode(int x) :
+    			val(x), left(NULL), right(NULL) {
+    	}
+    };*/
+    class Solution {
+    public:
+        void Mirror(TreeNode *pRoot) {
+            if (pRoot == NULL){
+                return ;
+            }
+            
+            TreeNode* tmp = pRoot->left;
+            pRoot->left = pRoot->right;
+            pRoot->right = tmp;
+            
+            Mirror(pRoot->left);
+            Mirror(pRoot->right);
+        }
+    };
+    ```
 
 19. 输入一个矩阵，按照从外向里以顺时针的顺序依次打印出每一个数字，例如，如果输入如下矩阵： 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 则依次打印出数字1,2,3,4,8,12,16,15,14,13,9,5,6,7,11,10.
 
@@ -838,7 +912,60 @@
 25. 输入一个复杂链表（每个节点中有节点值，以及两个指针，一个指向下一个节点，另一个特殊指针指向任意一个节点），返回结果为复制后复杂链表的head。（注意，输出结果中请不要返回参数中的节点引用，否则判题程序会直接返回空）
 
     ```
+    /*
+    struct RandomListNode {
+        int label;
+        struct RandomListNode *next, *random;
+        RandomListNode(int x) :
+                label(x), next(NULL), random(NULL) {
+        }
+    };
+    */
+    class Solution {
+    public:
+        RandomListNode* Clone(RandomListNode* pHead)
+        {
+            //复制正常的节点，放置在原有节点之后
+            RandomListNode* p_node = pHead;
+            
+            while(p_node != NULL){
+                RandomListNode *new_node = new RandomListNode(p_node->label);
+                
+                new_node->next = p_node->next;
+                p_node->next = new_node;
+                p_node = new_node->next;
+            }
 
+            //复制特殊指针
+            p_node = pHead;
+            while(p_node != NULL){
+                if (p_node->random != NULL){
+                    p_node->next->random = p_node->random->next;
+                }
+                p_node = p_node->next->next;
+            }
+
+            //取出复制好的指针构成结果
+            p_node = pHead;
+            RandomListNode* p_clone_node = NULL;
+            RandomListNode* dummy = NULL;
+            while(p_node != NULL){
+                if(dummy == NULL){
+                    dummy = p_node->next;
+                    p_clone_node = dummy;
+                }else{
+                    p_clone_node->next = p_node->next;
+                    p_clone_node = p_clone_node->next;
+                }
+                
+                //除了处理Clone之后的节点，最原始的节点中的也要做处理，否则会返回空
+                p_node->next = p_node->next->next;
+                p_node = p_node->next;
+            }
+
+            return dummy;
+        }
+    };
     ```
 
 26. 输入一棵二叉搜索树，将该二叉搜索树转换成一个排序的双向链表。要求不能创建任何新的结点，只能调整树中结点指针的指向。
@@ -1507,21 +1634,352 @@
 
 54. 请实现一个函数用来找出字符流中第一个只出现一次的字符。例如，当从字符流中只读出前两个字符"go"时，第一个只出现一次的字符是"g"。当从该字符流中读出前六个字符“google"时，第一个只出现一次的字符是"l"。
 
+    ```
+    class Solution
+    {
+    public:
+        vector<int> pos;
+        vector<bool> visited;
+        int cur_pos;
+        
+        Solution(){
+            pos = vector<int>(256, -1);
+            visited = vector<bool>(256, false);
+            cur_pos = 0;
+        }
+        
+      //Insert one char from stringstream
+        void Insert(char ch)
+        {
+             if(!visited[int(ch)]){
+                 visited[int(ch)] = true;
+                 pos[int(ch)] = (cur_pos++);
+             }else{
+                 pos[int(ch)] = -1;
+                 cur_pos++;
+             }
+        }
+      //return the first appearence once char in current stringstream
+        char FirstAppearingOnce()
+        {
+            int min_pos = INT_MAX;
+            char result = '#';
+            for(int i = 0 ; i < 256; i++){
+                if (pos[i] != -1 && min_pos > pos[i]){
+                    min_pos = pos[i];
+                    result = char(i);
+                }
+            }
+            
+            return result;
+        }
+
+    };
+    ```
+
 55. 一个链表中包含环，请找出该链表的环的入口结点。
 
+    ```
+    /*
+    struct ListNode {
+        int val;
+        struct ListNode *next;
+        ListNode(int x) :
+            val(x), next(NULL) {
+        }
+    };
+    */
+    class Solution {
+    public:
+        ListNode* EntryNodeOfLoop(ListNode* pHead)
+        {
+            //判断一个链表里面是否有环
+            ListNode* slow = pHead;
+            ListNode* fast = pHead;
+            ListNode* cross_node = NULL;
+
+            while(fast != NULL && fast->next != NULL){
+                slow = slow->next;
+                fast = fast->next->next;
+
+                if (fast == slow){
+                    cross_node = slow;
+                    break;
+                }
+            }
+
+            //没有找到环
+            if (cross_node == NULL){
+                return NULL;
+            }
+
+            //获取环的长度
+            int circle_len = 1;
+            ListNode* p_next_node = cross_node->next;
+            while(cross_node != p_next_node){
+                circle_len++;
+                p_next_node = p_next_node->next;
+            }
+
+            //获取环的入口
+            ListNode* entry_node = pHead;
+            ListNode* p_node = pHead;
+            for(int i = 0 ; p_node != NULL && i < circle_len; i++){
+                p_node = p_node->next;
+            }
+
+            while(entry_node != p_node){
+                p_node = p_node->next;
+                entry_node = entry_node->next;
+            }
+
+            return entry_node;
+        }
+    };
+    ```
+
 56. 在一个排序的链表中，存在重复的结点，请删除该链表中重复的结点，重复的结点不保留，返回链表头指针。 例如，链表1->2->3->3->4->4->5 处理后为 1->2->5
+
+    ```
+
+    ```
 
 57. 给定一个二叉树和其中的一个结点，请找出中序遍历顺序的下一个结点并且返回。注意，树中的结点不仅包含左右子结点，同时包含指向父结点的指针。
 
 58. 请实现一个函数，用来判断一颗二叉树是不是对称的。注意，如果一个二叉树同此二叉树的镜像是同样的，定义其为对称的。
 
+    ```
+    /*
+    struct TreeNode {
+        int val;
+        struct TreeNode *left;
+        struct TreeNode *right;
+        TreeNode(int x) :
+                val(x), left(NULL), right(NULL) {
+        }
+    };
+    */
+    class Solution {
+    public:
+        bool isSymmetrical(TreeNode* pRoot)
+        {
+            if (pRoot == NULL){
+                return true;
+            }
+            
+            return isSymmetrical(pRoot->left, pRoot->right);
+        }
+        
+        bool isSymmetrical(TreeNode* left_tree, TreeNode* right_tree){
+            if (left_tree == NULL && right_tree == NULL){
+                return true;
+            }
+            
+            if(left_tree == NULL || right_tree == NULL){
+                return false;
+            }
+            
+            if(left_tree->val == right_tree->val){
+                return isSymmetrical(left_tree->left, right_tree->right) && isSymmetrical(left_tree->right, right_tree->left);
+            }else{
+                return false;
+            }
+        }
+
+    };
+    ```
+
 59. 请实现一个函数按照之字形打印二叉树，即第一行按照从左到右的顺序打印，第二层按照从右至左的顺序打印，第三行按照从左到右的顺序打印，其他行以此类推。
+
+    ```
+    /*
+    struct TreeNode {
+        int val;
+        struct TreeNode *left;
+        struct TreeNode *right;
+        TreeNode(int x) :
+                val(x), left(NULL), right(NULL) {
+        }
+    };
+    */
+    class Solution {
+    public:
+        vector<vector<int> > Print(TreeNode* pRoot) {
+            vector<vector<int>> results;
+            if (pRoot == NULL){
+                return results;
+            }
+
+            queue<TreeNode*> queue_1, queue_2;
+            queue_1.push(pRoot);
+
+            while(!queue_1.empty() || !queue_2.empty()){
+                vector<int> tmp_vec;
+                while(!queue_1.empty()){
+                    TreeNode* tmp = queue_1.front();
+                    queue_1.pop();
+                    tmp_vec.push_back(tmp->val);
+                    if(tmp->left != NULL){
+                        queue_2.push(tmp->left);
+                    }
+                    if(tmp->right != NULL){
+                        queue_2.push(tmp->right);
+                    }
+                }
+                if (tmp_vec.size() > 0){
+                    results.push_back(tmp_vec);
+                }
+
+                stack<int> tmp_stack;
+                while(!queue_2.empty()){
+                    TreeNode* tmp = queue_2.front();
+                    queue_2.pop();
+                    tmp_stack.push(tmp->val);
+                    if (tmp->left != NULL){
+                        queue_1.push(tmp->left);
+                    }
+                    if (tmp->right != NULL){
+                        queue_1.push(tmp->right);
+                    }
+                }
+                if (tmp_stack.size() > 0){
+                    vector<int> tmp_vec_1;
+                    while(!tmp_stack.empty()){
+                        tmp_vec_1.push_back(tmp_stack.top());
+                        tmp_stack.pop();
+                    }
+                    results.push_back(tmp_vec_1);
+                }
+            }
+
+            return results;
+        }
+        
+    };
+    ```
 
 60. 从上到下按层打印二叉树，同一层结点从左至右输出。每一层输出一行。
 
+    ```
+    /*
+    struct TreeNode {
+        int val;
+        struct TreeNode *left;
+        struct TreeNode *right;
+        TreeNode(int x) :
+                val(x), left(NULL), right(NULL) {
+        }
+    };
+    */
+    class Solution {
+    public:
+            vector<vector<int> > Print(TreeNode* pRoot) {
+                vector<vector<int>> results;
+                if (pRoot == NULL){
+                    return results;
+                }
+                
+                queue<TreeNode*> queue_1, queue_2;
+                queue_1.push(pRoot);
+
+                while(!queue_1.empty() || !queue_2.empty()){
+                    vector<int> tmp_vec;
+                    while(!queue_1.empty()){
+                        TreeNode* tmp = queue_1.front();
+                        queue_1.pop();
+                        tmp_vec.push_back(tmp->val);
+                        if(tmp->left != NULL){
+                            queue_2.push(tmp->left);
+                        }
+                        if(tmp->right != NULL){
+                            queue_2.push(tmp->right);
+                        }
+                    }
+                    if (tmp_vec.size() > 0){
+                        results.push_back(tmp_vec);
+                    }
+                    
+                    vector<int> tmp_vec_1;
+                    while(!queue_2.empty()){
+                        TreeNode* tmp = queue_2.front();
+                        queue_2.pop();
+                        tmp_vec_1.push_back(tmp->val);
+                        if (tmp->left != NULL){
+                            queue_1.push(tmp->left);
+                        }
+                        if (tmp->right != NULL){
+                            queue_1.push(tmp->right);
+                        }
+                    }
+                    if (tmp_vec_1.size() > 0){
+                        results.push_back(tmp_vec_1);
+                    }
+                }
+
+                return results;
+            }
+        
+    };
+    ```
+
 61. 请实现两个函数，分别用来序列化和反序列化二叉树
 
-62. 给定一颗二叉搜索树，请找出其中的第k大的结点。例如， 5 / \ 3 7 /\ /\ 2 4 6 8 中，按结点数值大小顺序第三个结点的值为4。
+62. 给定一颗二叉搜索树，请找出其中的第k小的结点。例如， 5 / \ 3 7 /\ /\ 2 4 6 8 中，按结点数值大小顺序第三个结点的值为4。
+
+    ```
+    /*
+    struct TreeNode {
+        int val;
+        struct TreeNode *left;
+        struct TreeNode *right;
+        TreeNode(int x) :
+                val(x), left(NULL), right(NULL) {
+        }
+    };
+    */
+    class Solution {
+    public:
+        TreeNode* KthNode(TreeNode* pRoot, int k)
+        {
+            vector<TreeNode*> in_order_seq;
+            inOrderTraversal(pRoot, in_order_seq);
+            if (k <= 0){
+                return NULL;
+            }else if (k <= in_order_seq.size()){
+                return in_order_seq[k - 1];
+            }else{
+                return NULL;
+            }
+        }
+        
+        void inOrderTraversal(TreeNode* pRoot, vector<TreeNode*>& in_order_seq){
+            if (pRoot == NULL){
+                return ;
+            }
+            
+            stack<TreeNode*> nodes_has_right;
+            TreeNode* tmp = pRoot;
+            while(tmp != NULL){
+                nodes_has_right.push(tmp);
+                tmp = tmp->left;
+            }
+            
+            while(!nodes_has_right.empty()){
+                TreeNode* top_node = nodes_has_right.top();
+                nodes_has_right.pop();
+                
+                in_order_seq.push_back(top_node);
+                if(top_node->right != NULL){
+                    tmp = top_node->right;
+                    while(tmp != NULL){
+                        nodes_has_right.push(tmp);
+                        tmp = tmp->left;
+                    }
+                }
+            }
+        }
+    };
+    ```
 
 63. 如何得到一个数据流中的中位数？如果从数据流中读出奇数个数值，那么中位数就是所有数值排序之后位于中间的数值。如果从数据流中读出偶数个数值，那么中位数就是所有数值排序之后中间两个数的平均值。
 
