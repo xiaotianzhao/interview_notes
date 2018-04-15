@@ -971,7 +971,50 @@
 26. 输入一棵二叉搜索树，将该二叉搜索树转换成一个排序的双向链表。要求不能创建任何新的结点，只能调整树中结点指针的指向。
 
     ```
-
+    /*
+    struct TreeNode {
+    	int val;
+    	struct TreeNode *left;
+    	struct TreeNode *right;
+    	TreeNode(int x) :
+    			val(x), left(NULL), right(NULL) {
+    	}
+    };*/
+    class Solution {
+    public:
+        TreeNode* Convert(TreeNode* pRootOfTree)
+        {
+            TreeNode* last_node_in_list = NULL;
+            ConvertNode(pRootOfTree, &last_node_in_list);
+            
+            TreeNode* head_in_list = last_node_in_list;
+            while(head_in_list != NULL && head_in_list->left != NULL){
+                head_in_list = head_in_list->left;
+            }
+            
+            return head_in_list;
+        }
+        
+        void ConvertNode(TreeNode* pNode, TreeNode** p_last_in_list){
+            if (pNode == NULL){
+                return ;
+            }
+            TreeNode* currentNode = pNode;
+            if (currentNode->left != NULL){
+                ConvertNode(currentNode->left, p_last_in_list);
+            }
+            
+            currentNode->left = (*p_last_in_list);
+            if ((*p_last_in_list) != NULL){
+                (*p_last_in_list)->right = currentNode;
+            }
+            (*p_last_in_list) = currentNode;
+            
+            if (currentNode->right != NULL){
+                ConvertNode(currentNode->right, p_last_in_list);
+            }
+        }
+    };
     ```
 
 27. 输入一个字符串,按字典序打印出该字符串中字符的所有排列。例如输入字符串abc,则打印出由字符a,b,c所能排列出来的所有字符串abc,acb,bac,bca,cab和cba。
@@ -1153,6 +1196,66 @@
 
 31. 求出1~13的整数中1出现的次数,并算出100~1300的整数中1出现的次数？为此他特别数了一下1~13中包含1的数字有1、10、11、12、13因此共出现6次,但是对于后面问题他就没辙了。ACMer希望你们帮帮他,并把问题更加普遍化,可以很快的求出任意非负整数区间中1出现的次数。
 
+    ```
+    class Solution {
+    public:
+        int NumberOf1Between1AndN_Solution(int n)
+        {
+            ostringstream n_str;
+            n_str << n;
+            
+            return number_of_1(n_str.str());
+        }
+        
+        int number_of_1(string n_str){
+            int n_str_size = n_str.size();
+            // 当遇到4000这种情况的时候要考虑其特殊性
+            bool is_continue = true;
+            if (n_str_size == 0){
+                return 0;
+            }
+            if (n_str_size == 1 && n_str[0] - '0' >= 1){
+                return 1;
+            }
+            
+            if (n_str_size == 1 && n_str[0] - '0' == 0){
+                return 0;
+            }
+            
+            int result = 0;
+            if (n_str[0] - '0' > 1){
+                int power_num = 1;
+                for(int i = 0 ; i < n_str_size - 1; i++){
+                    power_num *= 10;
+                }
+                
+                result += power_num;
+            }else{
+                stringstream tmp_num_str(n_str.substr(1));
+                int tmp_num;
+                tmp_num_str >> tmp_num;
+                if (tmp_num == 0){
+                    is_continue = false;
+                }
+                result += (tmp_num + 1);
+            }
+            
+            int first = n_str[0] - '0';
+            int power_num = 1;
+            for(int i = 0 ; i < n_str_size - 2; i++){
+                power_num *= 10;
+            }
+            int tmp = first * (n_str_size - 1) * power_num;
+            result += tmp;
+            if (is_continue){
+                int recurisive_num = number_of_1(n_str.substr(1));
+                result += recurisive_num;
+            }
+            return result;
+        }
+    };
+    ```
+
 32. 输入一个正整数数组，把数组里所有数字拼接起来排成一个数，打印能拼接出的所有数字中最小的一个。例如输入数组{3，32，321}，则打印出这三个数字能排成的最小数字为321323。
 
     ```
@@ -1268,7 +1371,61 @@
 35. 在数组中的两个数字，如果前面一个数字大于后面的数字，则这两个数字组成一个逆序对。输入一个数组,求出这个数组中的逆序对的总数P。并将P对1000000007取模的结果输出。 即输出P%1000000007
 
     ```
-
+    class Solution {
+    public:
+        int InversePairs(vector<int> data) {
+            int result = 0;
+            int data_size = data.size();
+            if (data_size < 2){
+                return result;
+            }
+            
+            int low = 0;
+            int high = data_size - 1;
+            
+            merge_sort(data, low, high, result);
+            return result;
+        }
+        
+        void merge_sort(vector<int>& data, int low, int high, int& result){
+            if (low < high){
+                int mid = (low + high) / 2;
+                merge_sort(data, low, mid, result);
+                merge_sort(data, mid + 1, high, result);
+                merge(data, low, mid, high, result);
+            }
+        }
+        
+        void merge(vector<int>& data, int low, int mid, int high, int& result){
+            int length = high - low + 1;
+            // 这里习惯性会把length更改，但是其实要保存一个副本供调整data数组时候使用
+            int length_copy = length;
+            vector<int> tmp(length);
+            int right_pos = high;
+            int left_pos = mid;
+            
+            while(right_pos >= mid + 1 && left_pos >= low){
+                if (data[left_pos] > data[right_pos]){
+                    result = (result + right_pos - (mid + 1) + 1) % 1000000007;
+                    tmp[--length] = data[left_pos--];
+                }else{
+                    tmp[--length] = data[right_pos--];
+                }
+            }
+            
+            while(right_pos >= mid + 1){
+                tmp[--length] = data[right_pos--];
+            }
+            
+            while(left_pos >= low){
+                tmp[--length] = data[left_pos--];
+            }
+            
+            for(int i = 0; i < length_copy; i++){
+                data[low + i] = tmp[i];
+            }
+        }
+    };
     ```
 
 36. 输入两个链表，找出它们的第一个公共结点。
@@ -1614,7 +1771,57 @@
 
 44. 牛客最近来了一个新员工Fish，每天早晨总是会拿着一本英文杂志，写些句子在本子上。同事Cat对Fish写的内容颇感兴趣，有一天他向Fish借来翻看，但却读不懂它的意思。例如，“student. a am I”。后来才意识到，这家伙原来把句子单词的顺序翻转了，正确的句子应该是“I am a student.”。Cat对一一的翻转这些单词顺序可不在行，你能帮助他么？
 
+    ```
+    class Solution {
+    public:
+        string ReverseSentence(string str) {
+            if (str == ""){
+                return str;
+            }
+
+            Reverse(str, 0 , str.size() - 1);
+            int start = 0;
+            int end = 0;
+            bool is_alpha = false;
+
+            if (str[0] != ' '){
+                is_alpha = true;
+            }
+
+            for (int i = 1 ; i < str.size(); i++){
+                //cout << start << " " << end << endl;
+                if (str[i] == ' ' && is_alpha){
+                    Reverse(str, start, end);
+                    if (end + 2 < str.size()){
+                        start = end + 2;
+                    }
+                }
+                if (str[i] == ' '){
+                    is_alpha = false;
+                }else{
+                    is_alpha = true;
+                }
+                end++;
+            }
+            //最后的那个单词后面不是" ", 所以到最后需要做一下处理
+            Reverse(str, start, end);
+            return str;
+        }
+
+        void Reverse(string& str, int low, int high){
+            int length = high - low + 1;
+            for (int i = 0 ; i <= (length - 1) / 2; i++){
+                swap(str[low + i], str[high - i]);
+            }
+        }
+    };
+    ```
+
 45. LL今天心情特别好,因为他去买了一副扑克牌,发现里面居然有2个大王,2个小王(一副牌原本是54张^_^)...他随机从中抽出了5张牌,想测测自己的手气,看看能不能抽到顺子,如果抽到的话,他决定去买体育彩票,嘿嘿！！“红心A,黑桃3,小王,大王,方片5”,“Oh My God!”不是顺子.....LL不高兴了,他想了想,决定大\小 王可以看成任何数字,并且A看作1,J为11,Q为12,K为13。上面的5张牌就可以变成“1,2,3,4,5”(大小王分别看作2和4),“So Lucky!”。LL决定去买体育彩票啦。 现在,要求你使用这幅牌模拟上面的过程,然后告诉我们LL的运气如何。为了方便起见,你可以认为大小王是0。
+
+    ```
+
+    ```
 
 46. 每年六一儿童节,牛客都会准备一些小礼物去看望孤儿院的小朋友,今年亦是如此。HF作为牛客的资深元老,自然也准备了一些小游戏。其中,有个游戏是这样的:首先,让小朋友们围成一个大圈。然后,他随机指定一个数m,让编号为0的小朋友开始报数。每次喊到m-1的那个小朋友要出列唱首歌,然后可以在礼品箱中任意的挑选礼物,并且不再回到圈中,从他的下一个小朋友开始,继续0...m-1报数....这样下去....直到剩下最后一个小朋友,可以不用表演,并且拿到牛客名贵的“名侦探柯南”典藏版(名额有限哦!!^_^)。请你试着想下,哪个小朋友会得到这份礼品呢？(注：小朋友的编号是从0到n-1)
 
