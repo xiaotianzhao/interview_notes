@@ -129,6 +129,3 @@ $P(err) = 1 - \sum_{c \in Y} P(c\mid x)P(c \mid z) \simeq = 1 - \sum_{c \in Y}P^
 假定$m$个样本在原始空间的距离矩阵为$D \in R^{m*m}$ ,$dist_{i,j}$ 是$x_i, x_j$ 之间的距离。目标是获得样本在$d'$ 空间的表示$Z \in R^{d'*m}$ ，在低维空间的距离等于高维空间的距离。
 
 $B = Z^tZ \in R^{m*m}$ ，B为降维后样本的内积矩阵，$b_{ij} = z_i * z_j$ ， $dist_{ij}^{2} = \mid\mid z_i \mid\mid^2 + \mid\mid z_j \mid\mid^2 - 2*z_i^T*z_j = b_{ii} + b_{jj} - 2b_{ij}$
-
-
-
