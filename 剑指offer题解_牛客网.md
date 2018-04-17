@@ -1663,7 +1663,60 @@
             int small = 1;
             int big = 2;
             int cur_sum = small + big;
-            int mid = (sum + 1) / 2;
+            int mid = (sum/*
+    struct RandomListNode {
+        int label;
+        struct RandomListNode *next, *random;
+        RandomListNode(int x) :
+                label(x), next(NULL), random(NULL) {
+        }
+    };
+    */
+    class Solution {
+    public:
+        RandomListNode* Clone(RandomListNode* pHead)
+        {
+            //复制正常的节点，放置在原有节点之后
+            RandomListNode* p_node = pHead;
+            
+            while(p_node != NULL){
+                RandomListNode *new_node = new RandomListNode(p_node->label);
+                
+                new_node->next = p_node->next;
+                p_node->next = new_node;
+                p_node = new_node->next;
+            }
+
+            //复制特殊指针
+            p_node = pHead;
+            while(p_node != NULL){
+                if (p_node->random != NULL){
+                    p_node->next->random = p_node->random->next;
+                }
+                p_node = p_node->next->next;
+            }
+
+            //取出复制好的指针构成结果
+            p_node = pHead;
+            RandomListNode* p_clone_node = NULL;
+            RandomListNode* dummy = NULL;
+            while(p_node != NULL){
+                if(dummy == NULL){
+                    dummy = p_node->next;
+                    p_clone_node = dummy;
+                }else{
+                    p_clone_node->next = p_node->next;
+                    p_clone_node = p_clone_node->next;
+                }
+                
+                //除了处理Clone之后的节点，最原始的节点中的也要做处理，否则会返回空
+                p_node->next = p_node->next->next;
+                p_node = p_node->next;
+            }
+
+            return dummy;
+        }
+    }; + 1) / 2;
             while(small < mid){
                 if (cur_sum == sum){
                     vector<int> solution;
@@ -1820,24 +1873,327 @@
 45. LL今天心情特别好,因为他去买了一副扑克牌,发现里面居然有2个大王,2个小王(一副牌原本是54张^_^)...他随机从中抽出了5张牌,想测测自己的手气,看看能不能抽到顺子,如果抽到的话,他决定去买体育彩票,嘿嘿！！“红心A,黑桃3,小王,大王,方片5”,“Oh My God!”不是顺子.....LL不高兴了,他想了想,决定大\小 王可以看成任何数字,并且A看作1,J为11,Q为12,K为13。上面的5张牌就可以变成“1,2,3,4,5”(大小王分别看作2和4),“So Lucky!”。LL决定去买体育彩票啦。 现在,要求你使用这幅牌模拟上面的过程,然后告诉我们LL的运气如何。为了方便起见,你可以认为大小王是0。
 
     ```
+    class Solution {
+    public:
+        bool IsContinuous( vector<int> numbers ) {
+            int numbers_size = numbers.size();
+            if(numbers_size == 0){
+                return false;
+            }
+            
+            sort(numbers.begin(), numbers.end(), [](int a, int b){
+                return a < b;
+            });
+            
+            int i = 0;
+            int cnt = 0;
+            for(; i < numbers_size; i++){
+                if (numbers[i] == 0){
+                    cnt++;
+                }else{
+                    break;
+                }
+            }
+            
+            for(;i < numbers_size - 1; i++){
+                if (numbers[i + 1] - numbers[i] > 1){
+                    cnt -= (numbers[i + 1] - numbers[i] - 1);
+                    if (cnt < 0){
+                        return false;
+                    }
+                }else if(numbers[i + 1] == numbers[i]){
+                    return false;
+                }else{
+                    continue;
+                }
+            }
+            
+            return true;
+        }
+    };
+    ```
+
+46. **每年六一儿童节,牛客都会准备一些小礼物去看望孤儿院的小朋友,今年亦是如此。HF作为牛客的资深元老,自然也准备了一些小游戏。其中,有个游戏是这样的:首先,让小朋友们围成一个大圈。然后,他随机指定一个数m,让编号为0的小朋友开始报数。每次喊到m-1的那个小朋友要出列唱首歌,然后可以在礼品箱中任意的挑选礼物,并且不再回到圈中,从他的下一个小朋友开始,继续0...m-1报数....这样下去....直到剩下最后一个小朋友,可以不用表演,并且拿到牛客名贵的“名侦探柯南”典藏版(名额有限哦!!^_^)。请你试着想下,哪个小朋友会得到这份礼品呢？(注：小朋友的编号是从0到n-1)**
+
+    ```
+    #ifndef LASTREMAINING_SOLUTION_H_INCLUDED
+    #define LASTREMAINING_SOLUTION_H_INCLUDED
+
+    #include <vector>
+    #include <list>
+
+    #endif // LASTREMAINING_SOLUTION_H_INCLUDED
+
+    using namespace std;
+
+    class Solution {
+    public:
+        int LastRemaining_Solution(int n, int m)
+        {
+            if (n < 1 && m < 1){
+                return -1;
+            }
+
+            list<int> nums;
+            for (int i = 0; i < n; i++){
+                nums.push_back(i);
+            }
+
+            list<int>::iterator current = nums.begin();
+            while(nums.size() > 1){
+                for(int i = 0; i < m - 1; i++){
+                    current++;
+                    if (current == nums.end()){
+                        current = nums.begin();
+                    }
+                }
+
+                list<int>::iterator next = ++current;
+                if (next == nums.end()){
+                    next = nums.begin();
+                }
+
+                --current;
+                nums.erase(current);
+
+                current = next;
+            }
+
+            return (*current);
+        }
+
+    };
 
     ```
 
-46. 每年六一儿童节,牛客都会准备一些小礼物去看望孤儿院的小朋友,今年亦是如此。HF作为牛客的资深元老,自然也准备了一些小游戏。其中,有个游戏是这样的:首先,让小朋友们围成一个大圈。然后,他随机指定一个数m,让编号为0的小朋友开始报数。每次喊到m-1的那个小朋友要出列唱首歌,然后可以在礼品箱中任意的挑选礼物,并且不再回到圈中,从他的下一个小朋友开始,继续0...m-1报数....这样下去....直到剩下最后一个小朋友,可以不用表演,并且拿到牛客名贵的“名侦探柯南”典藏版(名额有限哦!!^_^)。请你试着想下,哪个小朋友会得到这份礼品呢？(注：小朋友的编号是从0到n-1)
-
 47. 求1+2+3+...+n，要求不能使用乘除法、for、while、if、else、switch、case等关键字及条件判断语句（A?B:C）。
+
+    ```
+    class Temp{
+    public:
+        Temp(){
+            ++N;
+            Sum += N;
+        }
+        
+        static void Reset(){
+            N = 0;
+            Sum = 0;
+        }
+        
+        static int getSum(){
+            return Sum;
+        }
+        
+    private:
+        static unsigned int N;
+        static unsigned int Sum;
+    };
+
+    unsigned int Temp::N = 0;
+    unsigned int Temp::Sum = 0;
+
+    class Solution {
+    public:
+        
+        int Sum_Solution(int n) {
+            Temp::Reset();
+            Temp* a = new Temp[n];
+            delete []a;
+            a = NULL;
+            return Temp::getSum();
+        }
+        
+    };
+    ```
 
 48. 写一个函数，求两个整数之和，要求在函数体内不得使用+、-、*、/四则运算符号。
 
+    ```
+    class Solution {
+    public:
+        int Add(int num1, int num2)
+        {
+            int sum ,carry;
+            while(num2 != 0){
+                //sum是不带进位的加法
+                sum = num1 ^ num2;
+                //carry 是进位，计算方法是两个数字取并且左移一位
+                carry = (num1 & num2) << 1;
+                
+                num1 = sum;
+                num2 = carry;
+            }
+            
+            return num1;
+        }
+    };
+    ```
+
 49. 将一个字符串转换成一个整数，要求不能使用字符串转换整数的库函数。 数值为0或者字符串不是一个合法的数值则返回0
+
+    ```
+    class Solution {
+    public:
+        int StrToInt(string str) {
+            int str_size = str.size();
+            if (str_size == 0){
+                return 0;
+            }
+            
+            bool flag = true;
+            if (str[0] == '-'){
+                flag = false;
+                str = str.substr(1);
+                str_size--;
+            }else if(str[0] == '+'){
+                str = str.substr(1);
+                str_size--;
+            }
+            
+            bool is_legal_flag = is_legal(str);
+            int result = 0;
+            if (is_legal_flag){
+                for(int i = 0 ; i < str_size; i++){
+                    int exponent = str_size - i - 1;
+                    int base = 1;
+                    for(int j = 0 ; j < exponent; j++){
+                        base *= 10;
+                    }
+                    result += (base * (str[i] - '0'));
+                }
+                
+                if (!flag){
+                    return -result;
+                }
+                
+                return result;
+            }else{
+                return 0;
+            }
+        }
+        
+        bool is_legal(string str){
+            int str_size = str.size();
+            if (str_size == 0){
+                return false;
+            }
+            for(int i = 0 ; i < str_size; i++){
+                if (str[i] - '0' >= 0 && str[i] - '0' <= 9){
+                    continue;
+                }else{
+                    return false;
+                }
+            }
+            return true;
+        }
+    };
+    ```
 
 50. 在一个长度为n的数组里的所有数字都在0到n-1的范围内。 数组中某些数字是重复的，但不知道有几个数字是重复的。也不知道每个数字重复几次。请找出数组中任意一个重复的数字。 例如，如果输入长度为7的数组{2,3,1,0,2,5,3}，那么对应的输出是第一个重复的数字2。
 
-51. 给定一个数组A[0,1,...,n-1],请构建一个数组B[0,1,...,n-1],其中B中的元素B[i]=A[0]*A[1]*...*A[i-1]*A[i+1]*...*A[n-1]。不能使用除法。
+    ```
+    class Solution {
+    public:
+        // Parameters:
+        //        numbers:     an array of integers
+        //        length:      the length of array numbers
+        //        duplication: (Output) the duplicated number in the array number
+        // Return value:       true if the input is valid, and there are some duplications in the array number
+        //                     otherwise false
+        bool duplicate(int numbers[], int length, int* duplication) {
+            for (int i = 0 ; i < length; i++){
+                while (i != numbers[i]){
+                    if (numbers[i] == numbers[numbers[i]]){
+                        *duplication = numbers[i];
+                        return true;
+                    }else{
+                        swap(numbers[i], numbers[numbers[i]]);
+                    }
+                }
+            }
+            
+            return false;
+        }
+    };
+    ```
 
-52. 请实现一个函数用来匹配包括'.'和'*'的正则表达式。模式中的字符'.'表示任意一个字符，而'*'表示它前面的字符可以出现任意次（包含0次）。 在本题中，匹配是指字符串的所有字符匹配整个模式。例如，字符串"aaa"与模式"a.a"和"ab*ac*a"匹配，但是与"aa.a"和"ab*a"均不匹配
+51. 给定一个数组A[0,1,...,n-1],请构建一个数组B[0,1,...,n-1],其中B中的元素B[i]=A[0]\*A[1]\*...\*A[i-1]\*A[i+1]\*...\*A[n-1]。不能使用除法。
+
+    ```
+    class Solution {
+    public:
+        vector<int> multiply(const vector<int>& A) {
+            int A_size = A.size();
+            vector<int> B(A_size);
+            if (A_size == 0){
+                return B;
+            }
+            vector<int> C(A_size), D(A_size);
+            C[0] = 1;
+            D[A_size - 1] = 1;
+            for(int i = 1; i < A_size; i++){
+                C[i] = C[i - 1] * A[i - 1];
+            }
+            
+            for(int i = A_size - 2; i >= 0; i--){
+                D[i] = D[i + 1] * A[i + 1];
+            }
+            
+            for(int i = 0 ; i < A_size; i++){
+                B[i] = C[i] * D[i];
+            }
+            
+            return B;
+        }
+    };
+    ```
+
+52. **请实现一个函数用来匹配包括'.'和'*'的正则表达式。模式中的字符'.'表示任意一个字符，而'*'表示它前面的字符可以出现任意次（包含0次）。 在本题中，匹配是指字符串的所有字符匹配整个模式。例如，字符串"aaa"与模式"a.a"和"ab*ac*a"匹配，但是与"aa.a"和"ab*a"均不匹配**
+
+    ```
+    class Solution {
+    public:
+        bool match(char* str, char* pattern)
+        {
+            if (str == NULL || pattern == NULL){
+                return false;
+            }
+            
+            return match_core(str, pattern);
+        }
+        
+        bool match_core(char* str, char* pattern){
+            if (*str == '\0' && *pattern == '\0'){
+                return true;
+            }
+            
+            if (*str != '\0' && *pattern == '\0'){
+                return false;
+            }
+            
+            if (*(pattern + 1) == '*'){
+                if (*pattern == *str || (*pattern == '.' && *str != '\0')){
+                    return match_core(str, pattern + 2) || match_core(str + 1, pattern + 2) || match_core(str + 1 , pattern);
+                }else{
+                    return match_core(str, pattern + 2);
+                }
+            }
+            
+            if (*str == *pattern || (*pattern == '.' && *str != '\0')){
+                return match_core(str + 1, pattern + 1);
+            }
+            
+            return false;
+        }
+    };
+    ```
 
 53. 请实现一个函数用来判断字符串是否表示数值（包括整数和小数）。例如，字符串"+100","5e2","-123","3.1416"和"-1E-16"都表示数值。 但是"12e","1a3.14","1.2.3","+-5"和"12e+4.3"都不是。
+
+    ```
+
+    ```
 
 54. 请实现一个函数用来找出字符流中第一个只出现一次的字符。例如，当从字符流中只读出前两个字符"go"时，第一个只出现一次的字符是"g"。当从该字符流中读出前六个字符“google"时，第一个只出现一次的字符是"l"。
 
@@ -1945,13 +2301,117 @@
     };
     ```
 
-56. 在一个排序的链表中，存在重复的结点，请删除该链表中重复的结点，重复的结点不保留，返回链表头指针。 例如，链表1->2->3->3->4->4->5 处理后为 1->2->5
+56. **在一个排序的链表中，存在重复的结点，请删除该链表中重复的结点，重复的结点不保留，返回链表头指针。 例如，链表1->2->3->3->4->4->5 处理后为 1->2->5**
 
     ```
+    /*
+    struct ListNode {
+        int val;
+        struct ListNode *next;
+        ListNode(int x) :
+            val(x), next(NULL) {
+        }
+    };
+    */
+    class Solution {
+    public:
+        ListNode* deleteDuplication(ListNode* pHead)
+        {
+            if (pHead == NULL || pHead->next == NULL){
+                return pHead;
+            }
 
+            ListNode *p_pre = NULL;
+            ListNode *p_node = pHead;
+            ListNode *p_next = NULL;
+            ListNode *p_new_head = pHead;
+
+            while (p_node != NULL){
+                p_next = p_node->next;
+                bool need_delete = false;
+                if (p_next != NULL && p_node->val == p_next->val){
+                    need_delete = true;
+                }
+
+                if (need_delete == false){
+                    p_pre = p_node;
+                    p_node = p_node->next;
+                }else{
+                    int value = p_node->val;
+                    ListNode* p_to_be_delete = p_node;
+                    while(p_to_be_delete != NULL && p_to_be_delete->val == value){
+                        p_next = p_to_be_delete->next;
+                        delete p_to_be_delete;
+                        p_to_be_delete = NULL;
+                        p_to_be_delete = p_next;
+                    }
+                    if (p_pre == NULL){
+                        p_new_head = p_next;
+                    }else{
+                        p_pre->next = p_next;
+                    }
+                    p_node = p_next;
+                }
+            }
+
+            return p_new_head;
+        }
+    };
     ```
 
 57. 给定一个二叉树和其中的一个结点，请找出中序遍历顺序的下一个结点并且返回。注意，树中的结点不仅包含左右子结点，同时包含指向父结点的指针。
+
+    ```
+    /*
+    struct TreeLinkNode {
+        int val;
+        struct TreeLinkNode *left;
+        struct TreeLinkNode *right;
+        struct TreeLinkNode *next;
+        TreeLinkNode(int x) :val(x), left(NULL), right(NULL), next(NULL) {
+            
+        }
+    };
+    */
+    class Solution {
+    public:
+        TreeLinkNode* GetNext(TreeLinkNode* pNode)
+        {
+            if(pNode == NULL){
+                return NULL;
+            }
+            
+            //如果右节点不为空，那么为其右子树的最左节点
+            if (pNode->right != NULL){
+                TreeLinkNode* pNodeTmp = pNode->right;
+                while(pNodeTmp->left != NULL){
+                    pNodeTmp = pNodeTmp->left;
+                }
+                
+                return pNodeTmp;
+            }
+            
+            //如果右节点为空，且为父节点的左子节点
+            if (pNode->next != NULL && pNode->next->left == pNode){
+                return pNode->next;
+            }
+            
+            //如果右节点为空，且是父节点的右子节点
+            if (pNode->next != NULL && pNode->next->right == pNode){
+                TreeLinkNode* pParent = pNode->next;
+                while(pParent != NULL && pParent->left != pNode){
+                    pNode = pParent;
+                    pParent = pParent->next;
+                }
+                if (pParent != NULL){
+                    return pParent;
+                }
+            }
+            
+            return NULL;
+        }
+    };
+    ```
 
 58. 请实现一个函数，用来判断一颗二叉树是不是对称的。注意，如果一个二叉树同此二叉树的镜像是同样的，定义其为对称的。
 
@@ -2131,6 +2591,10 @@
 
 61. 请实现两个函数，分别用来序列化和反序列化二叉树
 
+    ```
+
+    ```
+
 62. 给定一颗二叉搜索树，请找出其中的第k小的结点。例如， 5 / \ 3 7 /\ /\ 2 4 6 8 中，按结点数值大小顺序第三个结点的值为4。
 
     ```
@@ -2189,6 +2653,75 @@
     ```
 
 63. 如何得到一个数据流中的中位数？如果从数据流中读出奇数个数值，那么中位数就是所有数值排序之后位于中间的数值。如果从数据流中读出偶数个数值，那么中位数就是所有数值排序之后中间两个数的平均值。
+
+    ```
+    class Solution {
+    public:
+        //要确保最小堆中的所有数字是大于最大堆的
+        //总体来说 数据保存的形式是:max_heap + min_heap
+        vector<int> min_heap;
+        vector<int> max_heap;
+        
+        void Insert(int num)
+        {
+            int total_sum = min_heap.size() + max_heap.size();
+
+            if ((total_sum & 1) == 1){
+                //当总数目为奇数的时候把数据插入max_heap
+                if (min_heap.size() != 0 && num > min_heap[0]){
+                    min_heap.push_back(num);
+                    push_heap(min_heap.begin(), min_heap.end(), [](int a, int b){
+                        return a > b;
+                    });
+
+                    num = min_heap[0];
+
+                    pop_heap(min_heap.begin(), min_heap.end(),[](int a, int b){
+                        return a > b;
+                    });
+                    min_heap.pop_back();
+                }
+
+                max_heap.push_back(num);
+                push_heap(max_heap.begin(), max_heap.end(), [](int a, int b){
+                    return a < b;
+                });
+            }else{
+                //当总数目为偶数的时候把数据插入min_heap
+                if (max_heap.size() != 0 && num < max_heap[0]){
+                    max_heap.push_back(num);
+                    push_heap(max_heap.begin(), max_heap.end(), [](int a, int b){
+                        return a < b;
+                    });
+
+                    num = max_heap[0];
+
+                    pop_heap(max_heap.begin(), max_heap.end(), [](int a, int b){
+                        return a < b;
+                    });
+                    max_heap.pop_back();
+                }
+
+                min_heap.push_back(num);
+                push_heap(min_heap.begin(), min_heap.end(), [](int a, int b){
+                    return a > b;
+                });
+            }
+        }
+
+        double GetMedian()
+        { 
+            int total_size = min_heap.size() + max_heap.size();
+
+            if ((total_size & 1) == 1){
+                return min_heap[0];
+            }else{
+                return (min_heap[0] + max_heap[0]) / 2.0;
+            }
+        }
+
+    };
+    ```
 
 64. 给定一个数组和滑动窗口的大小，找出所有滑动窗口里数值的最大值。例如，如果输入数组{2,3,4,2,6,2,5,1}及滑动窗口的大小3，那么一共存在6个滑动窗口，他们的最大值分别为{4,4,6,6,6,5}； 针对数组{2,3,4,2,6,2,5,1}的滑动窗口有以下6个： {[2,3,4],2,6,2,5,1}， {2,[3,4,2],6,2,5,1}， {2,3,[4,2,6],2,5,1}， {2,3,4,[2,6,2],5,1}， {2,3,4,2,[6,2,5],1}， {2,3,4,2,6,[2,5,1]}。
 
